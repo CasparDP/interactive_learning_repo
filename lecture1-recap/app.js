@@ -348,22 +348,45 @@ const Lecture1RecapExercise = () => {
 
       // Question (## Question)
       if (line.startsWith("## Question")) {
+        // Save previous question if exists
         if (currentQuestion && currentTopic) {
           currentTopic.questions.push(currentQuestion);
         }
 
-        // Get the question text (next line after the heading)
-        const questionText = lines[i + 1]?.trim() || "Missing question text";
+        // Extract the question text directly from this line
+        const questionText = line
+          .replace("## Question", "")
+          .replace(/^\d+/, "")
+          .trim();
+
+        // Find the actual question content in subsequent lines
+        let actualQuestion = "";
+        let j = i + 1;
+        while (
+          j < lines.length &&
+          !lines[j].trim().startsWith("-") &&
+          !lines[j].trim().startsWith("**") &&
+          lines[j].trim() !== ""
+        ) {
+          actualQuestion += lines[j].trim() + " ";
+          j++;
+        }
 
         currentQuestion = {
-          id: `q-${topics.length}-${currentTopic?.questions.length || 0}`,
-          text: questionText,
+          id: `q-${topics.length}-${
+            currentTopic && currentTopic.questions
+              ? currentTopic.questions.length
+              : 0
+          }`,
+          text:
+            actualQuestion.trim() || questionText || "Missing question text",
           options: [],
           correctAnswer: null,
           explanation: "",
         };
 
-        i++; // Skip the question text line
+        // Skip processed lines
+        i = j - 1;
         continue;
       }
 
@@ -450,6 +473,8 @@ const Lecture1RecapExercise = () => {
       if (parsedTopics.length === 0) {
         console.warn("No topics parsed from hardcoded content");
         setTopics(fallbackTopics);
+        setLoading(false); // Add this line
+        return;
       } else {
         setTopics(parsedTopics);
         setLoading(false);
