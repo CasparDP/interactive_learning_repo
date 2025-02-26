@@ -1,7 +1,9 @@
+import React, { useState } from "react";
+
 const RevenueRecognitionExercise = () => {
-  const [currentCase, setCurrentCase] = React.useState(0);
-  const [studentAnswers, setStudentAnswers] = React.useState({});
-  const [showFeedback, setShowFeedback] = React.useState(false);
+  const [currentCase, setCurrentCase] = useState(0);
+  const [studentAnswers, setStudentAnswers] = useState({});
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const cases = [
     {
@@ -170,44 +172,46 @@ const RevenueRecognitionExercise = () => {
         Revenue Recognition Decision Exercise
       </h1>
 
-      <div className="case-navigation">
+      <div className="flex justify-between mb-4">
         <button
           onClick={handlePrevious}
           disabled={currentCase === 0}
-          className={`btn ${
-            currentCase === 0 ? "btn-disabled" : "btn-primary"
+          className={`px-4 py-2 rounded ${
+            currentCase === 0 ? "bg-gray-300" : "bg-blue-600 text-white"
           }`}
         >
           Previous Case
         </button>
-        <span className="case-indicator">
+        <span className="px-4 py-2 bg-blue-100 rounded">
           Case {currentCase + 1} of {cases.length}
         </span>
         <button
           onClick={handleNext}
           disabled={currentCase === cases.length - 1}
-          className={`btn ${
-            currentCase === cases.length - 1 ? "btn-disabled" : "btn-primary"
+          className={`px-4 py-2 rounded ${
+            currentCase === cases.length - 1
+              ? "bg-gray-300"
+              : "bg-blue-600 text-white"
           }`}
         >
           Next Case
         </button>
       </div>
 
-      <div className="case-description">
-        <h2 className="case-title">{currentCaseData.title}</h2>
+      <div className="bg-blue-50 p-4 rounded-lg mb-6">
+        <h2 className="text-xl font-semibold mb-2">{currentCaseData.title}</h2>
         <p className="mb-4">{currentCaseData.description}</p>
       </div>
 
       <div className="space-y-6">
         {currentCaseData.questions.map((question, qIndex) => (
-          <div key={question.id} className="question-container">
-            <h3 className="question-title">
+          <div key={question.id} className="border rounded-lg p-4">
+            <h3 className="font-semibold mb-2">
               Question {qIndex + 1}: {question.text}
             </h3>
-            <div className="options-container">
+            <div className="space-y-2">
               {question.options.map((option, oIndex) => (
-                <div key={oIndex} className="option-item">
+                <div key={oIndex} className="flex items-start">
                   <input
                     type="radio"
                     id={`${question.id}-${oIndex}`}
@@ -227,12 +231,12 @@ const RevenueRecognitionExercise = () => {
 
             {showFeedback && (
               <div
-                className={
+                className={`mt-3 p-3 rounded ${
                   studentAnswers[`${currentCase}-${qIndex}`] ===
                   question.correctAnswer
-                    ? "feedback-correct"
-                    : "feedback-incorrect"
-                }
+                    ? "bg-green-100"
+                    : "bg-red-100"
+                }`}
               >
                 {studentAnswers[`${currentCase}-${qIndex}`] ===
                 question.correctAnswer
@@ -247,17 +251,23 @@ const RevenueRecognitionExercise = () => {
       </div>
 
       {showFeedback && (
-        <div className="explanation-container">
+        <div className="mt-6 bg-yellow-50 p-4 rounded-lg">
           <h3 className="font-semibold mb-2">Explanation:</h3>
           <p>{currentCaseData.explanation}</p>
         </div>
       )}
 
       <div className="mt-6 flex space-x-4">
-        <button onClick={handleSubmit} className="btn btn-secondary">
+        <button
+          onClick={handleSubmit}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
           Check Answers
         </button>
-        <button onClick={handleReset} className="btn btn-neutral">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+        >
           Reset Answers
         </button>
       </div>
@@ -265,7 +275,4 @@ const RevenueRecognitionExercise = () => {
   );
 };
 
-ReactDOM.render(
-  <RevenueRecognitionExercise />,
-  document.getElementById("root")
-);
+export default RevenueRecognitionExercise;
