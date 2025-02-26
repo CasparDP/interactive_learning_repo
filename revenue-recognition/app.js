@@ -2,6 +2,9 @@ const RevenueRecognitionExercise = () => {
   const [currentCase, setCurrentCase] = React.useState(0);
   const [studentAnswers, setStudentAnswers] = React.useState({});
   const [showFeedback, setShowFeedback] = React.useState(false);
+  const [completedCases, setCompletedCases] = React.useState(new Set());
+  const [score, setScore] = React.useState({ total: 0, correct: 0 });
+  const [attemptedToLeave, setAttemptedToLeave] = React.useState(false);
 
   const cases = [
     {
@@ -132,21 +135,58 @@ const RevenueRecognitionExercise = () => {
     },
   ];
 
+  const areAllQuestionsAnswered = () => {
+    const currentQuestions = cases[currentCase].questions;
+    return currentQuestions.every(
+      (_, index) => studentAnswers[`${currentCase}-${index}`] !== undefined
+    );
+  };
+
+  const calculateCaseScore = () => {
+    const currentQuestions = cases[currentCase].questions;
+    let correct = 0;
+    currentQuestions.forEach((question, index) => {
+      if (
+        studentAnswers[`${currentCase}-${index}`] === question.correctAnswer
+      ) {
+        correct++;
+      }
+    });
+    return correct;
+  };
+
   const handleAnswer = (questionIndex, optionIndex) => {
+    if (showFeedback) return; // Prevent changing answers after submission
+
     setStudentAnswers({
       ...studentAnswers,
       [`${currentCase}-${questionIndex}`]: optionIndex,
     });
+    setAttemptedToLeave(false);
   };
 
   const handleSubmit = () => {
+    if (!areAllQuestionsAnswered()) return;
+
+    const caseScore = calculateCaseScore();
+    setScore((prev) => ({
+      total: prev.total + cases[currentCase].questions.length,
+      correct: prev.correct + caseScore,
+    }));
+
+    setCompletedCases((prev) => new Set([...prev, currentCase]));
     setShowFeedback(true);
   };
 
   const handleNext = () => {
     if (currentCase < cases.length - 1) {
+      if (!completedCases.has(currentCase) && !attemptedToLeave) {
+        setAttemptedToLeave(true);
+        return;
+      }
       setCurrentCase(currentCase + 1);
       setShowFeedback(false);
+      setAttemptedToLeave(false);
     }
   };
 
@@ -202,7 +242,13 @@ const RevenueRecognitionExercise = () => {
       <div className="space-y-6">
         {currentCaseData.questions.map((question, qIndex) => (
           <div key={question.id} className="question-container">
-            <h3 className="question-title">
+            <h3
+              className={`question-title ${
+                !studentAnswers[`${currentCase}-${qIndex}`] && showFeedback
+                  ? "text-red-500"
+                  : ""
+              }`}
+            >
               Question {qIndex + 1}: {question.text}
             </h3>
             <div className="options-container">
@@ -254,13 +300,27 @@ const RevenueRecognitionExercise = () => {
       )}
 
       <div className="mt-6 flex space-x-4">
-        <button onClick={handleSubmit} className="btn btn-secondary">
+        <button
+          onClick={handleSubmit}
+          disabled={showFeedback || !areAllQuestionsAnswered()}
+          className={`btn ${
+            showFeedback || !areAllQuestionsAnswered()
+              ? "btn-disabled"
+              : "btn-secondary"
+          }`}
+        >
           Check Answers
         </button>
         <button onClick={handleReset} className="btn btn-neutral">
           Reset Answers
         </button>
       </div>
+
+      {!areAllQuestionsAnswered() && (
+        <p className="text-red-500 mt-2">
+          Please answer all questions before checking.
+        </p>
+      )}
     </div>
   );
 };
