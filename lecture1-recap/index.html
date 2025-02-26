@@ -2,51 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=5.0"
-    />
-    <meta
-      name="description"
-      content="Interactive quiz to recap key concepts from Lecture 1: Introduction to Financial Reporting & Analysis"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lecture 1 Recap | Financial Reporting & Analysis</title>
 
     <!-- Stylesheets -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-      crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="../assets/css/rsm-theme.css" />
 
-    <!-- Preload critical scripts -->
-    <link
-      rel="preload"
-      as="script"
-      href="https://unpkg.com/react@17/umd/react.production.min.js"
-    />
-    <link
-      rel="preload"
-      as="script"
-      href="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
-    />
+    <!-- React -->
+    <script
+      src="https://unpkg.com/react@17/umd/react.production.min.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
+      crossorigin
+    ></script>
   </head>
   <body class="bg-gray-100">
-    <nav
-      class="bg-blue-800 text-white p-4"
-      role="navigation"
-      aria-label="Main Navigation"
-    >
+    <nav class="bg-blue-800 text-white p-4">
       <div class="container mx-auto">
         <div class="flex justify-between items-center">
           <h1 class="text-xl font-bold">Financial Reporting & Analysis</h1>
-          <a
-            href="../"
-            class="hover:underline"
-            aria-label="Return to Components page"
-            >← Back to Components</a
-          >
+          <a href="../" class="hover:underline">← Back to Components</a>
         </div>
       </div>
     </nav>
@@ -54,20 +34,9 @@
     <main>
       <div id="root" class="container mx-auto py-6"></div>
     </main>
-    <!-- Scripts -->
-    <script
-      src="https://unpkg.com/react@17/umd/react.production.min.js"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://unpkg.com/babel-standalone@6/babel.min.js"
-      defer
-    ></script>
-    <script type="text/babel" src="app.js"></script>
+
+    <!-- App Script -->
+    <script src="app.js"></script>
 
     <!-- Error handling -->
     <script>
