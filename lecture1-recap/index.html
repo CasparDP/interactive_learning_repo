@@ -54,7 +54,6 @@
     <main>
       <div id="root" class="container mx-auto py-6"></div>
     </main>
-
     <!-- Scripts -->
     <script
       src="https://unpkg.com/react@17/umd/react.production.min.js"
@@ -64,17 +63,11 @@
       src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
       crossorigin="anonymous"
     ></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script>
-      // Configure Babel to use newer presets
-      Babel.registerPreset("react-app", {
-        presets: [
-          [Babel.availablePresets["es2015"]],
-          [Babel.availablePresets["react"]],
-        ],
-      });
-    </script>
-    <script type="text/babel" data-presets="react-app" src="app.js"></script>
+    <script
+      src="https://unpkg.com/babel-standalone@6/babel.min.js"
+      defer
+    ></script>
+    <script type="text/babel" src="app.js"></script>
 
     <!-- Error handling -->
     <script>
@@ -83,7 +76,7 @@
         function (e) {
           if (document.getElementById("root").childNodes.length === 0) {
             document.getElementById("root").innerHTML =
-              '<div class="p-4 bg-red-100 text-red-700 rounded">Sorry, there was a problem loading the quiz. Please try refreshing the page.</div>';
+              '<div class="p-4 bg-red-100 text-red-700 rounded">Sorry, there was a problem loading the exercise. Please try refreshing the page.</div>';
           }
         },
         true
