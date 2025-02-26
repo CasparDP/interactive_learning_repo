@@ -18,7 +18,7 @@
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="./assets/css/rsm-theme.css" />
+    <link rel="stylesheet" href="../assets/css/rsm-theme.css" />
 
     <!-- Preload critical scripts -->
     <link
@@ -42,7 +42,7 @@
         <div class="flex justify-between items-center">
           <h1 class="text-xl font-bold">Financial Reporting & Analysis</h1>
           <a
-            href="./"
+            href="../"
             class="hover:underline"
             aria-label="Return to Components page"
             >← Back to Components</a
@@ -64,11 +64,17 @@
       src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
       crossorigin="anonymous"
     ></script>
-    <script
-      src="https://unpkg.com/babel-standalone@6/babel.min.js"
-      defer
-    ></script>
-    <script type="text/babel" src="app.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script>
+      // Configure Babel to use newer presets
+      Babel.registerPreset("react-app", {
+        presets: [
+          [Babel.availablePresets["es2015"]],
+          [Babel.availablePresets["react"]],
+        ],
+      });
+    </script>
+    <script type="text/babel" data-presets="react-app" src="app.js"></script>
 
     <!-- Error handling -->
     <script>
