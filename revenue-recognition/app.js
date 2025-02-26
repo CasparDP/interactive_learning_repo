@@ -1,9 +1,148 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+// Navigation component
+const CaseNavigation = ({
+  currentCase,
+  totalCases,
+  onPrevious,
+  onNext,
+  completedCases,
+  hasUnsavedChanges,
+}) => (
+  <div className="flex justify-between mb-4">
+    <button
+      onClick={onPrevious}
+      disabled={currentCase === 0}
+      className={`px-4 py-2 rounded ${
+        currentCase === 0 ? "bg-gray-300" : "bg-blue-600 text-white"
+      }`}
+    >
+      Previous Case
+    </button>
+    <span className="px-4 py-2 bg-blue-100 rounded">
+      Case {currentCase + 1} of {totalCases}
+      {completedCases.has(currentCase) && " ✓"}
+    </span>
+    <button
+      onClick={() => {
+        if (
+          hasUnsavedChanges &&
+          !window.confirm(
+            "You have unsaved answers. Continue without checking?"
+          )
+        ) {
+          return;
+        }
+        onNext();
+      }}
+      disabled={currentCase === totalCases - 1}
+      className={`px-4 py-2 rounded ${
+        currentCase === totalCases - 1
+          ? "bg-gray-300"
+          : "bg-blue-600 text-white"
+      }`}
+    >
+      Next Case
+    </button>
+  </div>
+);
+
+// Case description component
+const CaseDescription = ({ title, description }) => (
+  <div className="bg-blue-50 p-4 rounded-lg mb-6">
+    <h2 className="text-xl font-semibold mb-2">{title}</h2>
+    <p className="mb-4">{description}</p>
+  </div>
+);
+
+// Question component
+const Question = ({
+  question,
+  index,
+  selectedAnswer,
+  onAnswerSelect,
+  showFeedback,
+}) => (
+  <div className="border rounded-lg p-4">
+    <h3 className="font-semibold mb-2">
+      Question {index + 1}: {question.text}
+    </h3>
+    <div className="space-y-2">
+      {question.options.map((option, oIndex) => (
+        <div key={oIndex} className="flex items-start">
+          <input
+            type="radio"
+            id={`${question.id}-${oIndex}`}
+            name={question.id}
+            checked={selectedAnswer === oIndex}
+            onChange={() => onAnswerSelect(index, oIndex)}
+            disabled={showFeedback}
+            className="mt-1 mr-2"
+          />
+          <label
+            htmlFor={`${question.id}-${oIndex}`}
+            className={`block ${
+              showFeedback && question.correctAnswer === oIndex
+                ? "font-bold"
+                : ""
+            }`}
+          >
+            {option}
+          </label>
+        </div>
+      ))}
+    </div>
+
+    {showFeedback && (
+      <div
+        className={`mt-3 p-3 rounded ${
+          selectedAnswer === question.correctAnswer
+            ? "bg-green-100"
+            : "bg-red-100"
+        }`}
+      >
+        {selectedAnswer === question.correctAnswer
+          ? "✓ Correct!"
+          : `✗ Incorrect. The correct answer is: ${
+              question.options[question.correctAnswer]
+            }`}
+      </div>
+    )}
+  </div>
+);
 
 const RevenueRecognitionExercise = () => {
   const [currentCase, setCurrentCase] = useState(0);
   const [studentAnswers, setStudentAnswers] = useState({});
   const [showFeedback, setShowFeedback] = useState(false);
+  const [completedCases, setCompletedCases] = useState(new Set());
+  const [score, setScore] = useState({ total: 0, correct: 0 });
+
+  // Load saved state on initial render
+  useEffect(() => {
+    const savedState = localStorage.getItem("revenueRecognitionState");
+    if (savedState) {
+      const { answers, completed, scoreData, caseIndex } =
+        JSON.parse(savedState);
+      setStudentAnswers(answers);
+      setCompletedCases(new Set(completed));
+      setScore(scoreData);
+      setCurrentCase(caseIndex);
+    }
+  }, []);
+
+  // Save state when it changes
+  useEffect(() => {
+    localStorage.setItem(
+      "revenueRecognitionState",
+      JSON.stringify({
+        answers: studentAnswers,
+        completed: [...completedCases],
+        scoreData: score,
+        caseIndex: currentCase,
+      })
+    );
+  }, [studentAnswers, completedCases, score, currentCase]);
 
   const cases = [
     {
@@ -134,7 +273,27 @@ const RevenueRecognitionExercise = () => {
     },
   ];
 
+  // Check if all questions for current case are answered
+  const areAllQuestionsAnswered = () => {
+    const currentQuestions = cases[currentCase].questions;
+    return currentQuestions.every(
+      (_, index) => studentAnswers[`${currentCase}-${index}`] !== undefined
+    );
+  };
+
+  // Check if any questions for current case are answered but not submitted
+  const hasUnsavedChanges = () => {
+    const currentQuestions = cases[currentCase].questions;
+    return (
+      currentQuestions.some(
+        (_, index) => studentAnswers[`${currentCase}-${index}`] !== undefined
+      ) && !completedCases.has(currentCase)
+    );
+  };
+
   const handleAnswer = (questionIndex, optionIndex) => {
+    if (showFeedback) return;
+
     setStudentAnswers({
       ...studentAnswers,
       [`${currentCase}-${questionIndex}`]: optionIndex,
@@ -142,6 +301,29 @@ const RevenueRecognitionExercise = () => {
   };
 
   const handleSubmit = () => {
+    if (!areAllQuestionsAnswered()) {
+      alert("Please answer all questions before checking your answers.");
+      return;
+    }
+
+    // Calculate score for this case
+    const currentQuestions = cases[currentCase].questions;
+    let correctAnswers = 0;
+    currentQuestions.forEach((question, index) => {
+      if (
+        studentAnswers[`${currentCase}-${index}`] === question.correctAnswer
+      ) {
+        correctAnswers++;
+      }
+    });
+
+    // Update overall score
+    setScore((prev) => ({
+      total: prev.total + currentQuestions.length,
+      correct: prev.correct + correctAnswers,
+    }));
+
+    setCompletedCases((prev) => new Set([...prev, currentCase]));
     setShowFeedback(true);
   };
 
@@ -160,8 +342,19 @@ const RevenueRecognitionExercise = () => {
   };
 
   const handleReset = () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to reset all your answers and progress?"
+      )
+    ) {
+      return;
+    }
+
     setStudentAnswers({});
     setShowFeedback(false);
+    setCompletedCases(new Set());
+    setScore({ total: 0, correct: 0 });
+    localStorage.removeItem("revenueRecognitionState");
   };
 
   const currentCaseData = cases[currentCase];
@@ -172,81 +365,38 @@ const RevenueRecognitionExercise = () => {
         Revenue Recognition Decision Exercise
       </h1>
 
-      <div className="flex justify-between mb-4">
-        <button
-          onClick={handlePrevious}
-          disabled={currentCase === 0}
-          className={`px-4 py-2 rounded ${
-            currentCase === 0 ? "bg-gray-300" : "bg-blue-600 text-white"
-          }`}
-        >
-          Previous Case
-        </button>
-        <span className="px-4 py-2 bg-blue-100 rounded">
-          Case {currentCase + 1} of {cases.length}
-        </span>
-        <button
-          onClick={handleNext}
-          disabled={currentCase === cases.length - 1}
-          className={`px-4 py-2 rounded ${
-            currentCase === cases.length - 1
-              ? "bg-gray-300"
-              : "bg-blue-600 text-white"
-          }`}
-        >
-          Next Case
-        </button>
-      </div>
+      {/* Score display */}
+      {score.total > 0 && (
+        <div className="mb-4 bg-blue-50 p-2 rounded text-center">
+          Overall Score: {score.correct}/{score.total} (
+          {Math.round((score.correct / score.total) * 100)}%)
+        </div>
+      )}
 
-      <div className="bg-blue-50 p-4 rounded-lg mb-6">
-        <h2 className="text-xl font-semibold mb-2">{currentCaseData.title}</h2>
-        <p className="mb-4">{currentCaseData.description}</p>
-      </div>
+      <CaseNavigation
+        currentCase={currentCase}
+        totalCases={cases.length}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        completedCases={completedCases}
+        hasUnsavedChanges={hasUnsavedChanges()}
+      />
+
+      <CaseDescription
+        title={currentCaseData.title}
+        description={currentCaseData.description}
+      />
 
       <div className="space-y-6">
         {currentCaseData.questions.map((question, qIndex) => (
-          <div key={question.id} className="border rounded-lg p-4">
-            <h3 className="font-semibold mb-2">
-              Question {qIndex + 1}: {question.text}
-            </h3>
-            <div className="space-y-2">
-              {question.options.map((option, oIndex) => (
-                <div key={oIndex} className="flex items-start">
-                  <input
-                    type="radio"
-                    id={`${question.id}-${oIndex}`}
-                    name={question.id}
-                    checked={
-                      studentAnswers[`${currentCase}-${qIndex}`] === oIndex
-                    }
-                    onChange={() => handleAnswer(qIndex, oIndex)}
-                    className="mt-1 mr-2"
-                  />
-                  <label htmlFor={`${question.id}-${oIndex}`} className="block">
-                    {option}
-                  </label>
-                </div>
-              ))}
-            </div>
-
-            {showFeedback && (
-              <div
-                className={`mt-3 p-3 rounded ${
-                  studentAnswers[`${currentCase}-${qIndex}`] ===
-                  question.correctAnswer
-                    ? "bg-green-100"
-                    : "bg-red-100"
-                }`}
-              >
-                {studentAnswers[`${currentCase}-${qIndex}`] ===
-                question.correctAnswer
-                  ? "✓ Correct!"
-                  : `✗ Incorrect. The correct answer is: ${
-                      question.options[question.correctAnswer]
-                    }`}
-              </div>
-            )}
-          </div>
+          <Question
+            key={question.id}
+            question={question}
+            index={qIndex}
+            selectedAnswer={studentAnswers[`${currentCase}-${qIndex}`]}
+            onAnswerSelect={handleAnswer}
+            showFeedback={showFeedback}
+          />
         ))}
       </div>
 
@@ -260,17 +410,39 @@ const RevenueRecognitionExercise = () => {
       <div className="mt-6 flex space-x-4">
         <button
           onClick={handleSubmit}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          disabled={showFeedback || !areAllQuestionsAnswered()}
+          className={`px-4 py-2 rounded ${
+            showFeedback || !areAllQuestionsAnswered()
+              ? "bg-gray-400"
+              : "bg-green-600 text-white hover:bg-green-700"
+          }`}
         >
           Check Answers
         </button>
         <button
           onClick={handleReset}
           className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+          disabled={Object.keys(studentAnswers).length === 0}
         >
-          Reset Answers
+          Reset All Progress
         </button>
       </div>
+
+      {!areAllQuestionsAnswered() && (
+        <div className="mt-3 text-red-600 text-center">
+          Please answer all questions before checking.
+        </div>
+      )}
+
+      {completedCases.size === cases.length && (
+        <div className="mt-6 p-4 bg-green-100 border border-green-400 rounded text-center">
+          <h3 className="font-bold text-green-800 text-lg">Congratulations!</h3>
+          <p>
+            You've completed all cases with a final score of {score.correct}/
+            {score.total}.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
