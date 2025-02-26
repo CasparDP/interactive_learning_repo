@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// Remove import statement and use global React
+const { useState, useEffect } = React;
 
 // Navigation component
 const CaseNavigation = ({
@@ -122,12 +123,16 @@ const RevenueRecognitionExercise = () => {
   useEffect(() => {
     const savedState = localStorage.getItem("revenueRecognitionState");
     if (savedState) {
-      const { answers, completed, scoreData, caseIndex } =
-        JSON.parse(savedState);
-      setStudentAnswers(answers);
-      setCompletedCases(new Set(completed));
-      setScore(scoreData);
-      setCurrentCase(caseIndex);
+      try {
+        const { answers, completed, scoreData, caseIndex } =
+          JSON.parse(savedState);
+        setStudentAnswers(answers || {});
+        setCompletedCases(new Set(completed || []));
+        setScore(scoreData || { total: 0, correct: 0 });
+        setCurrentCase(caseIndex || 0);
+      } catch (e) {
+        console.error("Error loading saved state:", e);
+      }
     }
   }, []);
 
@@ -361,26 +366,16 @@ const RevenueRecognitionExercise = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-blue-800 mb-6">
-        Revenue Recognition Decision Exercise
-      </h1>
-
-      {/* Score display */}
-      {score.total > 0 && (
-        <div className="mb-4 bg-blue-50 p-2 rounded text-center">
-          Overall Score: {score.correct}/{score.total} (
-          {Math.round((score.correct / score.total) * 100)}%)
-        </div>
-      )}
-
-      <CaseNavigation
-        currentCase={currentCase}
-        totalCases={cases.length}
-        onPrevious={handlePrevious}
-        onNext={handleNext}
-        completedCases={completedCases}
-        hasUnsavedChanges={hasUnsavedChanges()}
-      />
+      <div className="mb-6">
+        <CaseNavigation
+          currentCase={currentCase}
+          totalCases={cases.length}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          completedCases={completedCases}
+          hasUnsavedChanges={hasUnsavedChanges()}
+        />
+      </div>
 
       <CaseDescription
         title={currentCaseData.title}
@@ -388,12 +383,12 @@ const RevenueRecognitionExercise = () => {
       />
 
       <div className="space-y-6">
-        {currentCaseData.questions.map((question, qIndex) => (
+        {currentCaseData.questions.map((question, index) => (
           <Question
             key={question.id}
             question={question}
-            index={qIndex}
-            selectedAnswer={studentAnswers[`${currentCase}-${qIndex}`]}
+            index={index}
+            selectedAnswer={studentAnswers[`${currentCase}-${index}`]}
             onAnswerSelect={handleAnswer}
             showFeedback={showFeedback}
           />
@@ -401,19 +396,19 @@ const RevenueRecognitionExercise = () => {
       </div>
 
       {showFeedback && (
-        <div className="mt-6 bg-yellow-50 p-4 rounded-lg">
-          <h3 className="font-semibold mb-2">Explanation:</h3>
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <h3 className="font-bold mb-2">Explanation:</h3>
           <p>{currentCaseData.explanation}</p>
         </div>
       )}
 
-      <div className="mt-6 flex space-x-4">
+      <div className="mt-6 flex flex-wrap gap-4">
         <button
           onClick={handleSubmit}
           disabled={showFeedback || !areAllQuestionsAnswered()}
           className={`px-4 py-2 rounded ${
             showFeedback || !areAllQuestionsAnswered()
-              ? "bg-gray-400"
+              ? "bg-gray-300"
               : "bg-green-600 text-white hover:bg-green-700"
           }`}
         >
@@ -421,30 +416,29 @@ const RevenueRecognitionExercise = () => {
         </button>
         <button
           onClick={handleReset}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-          disabled={Object.keys(studentAnswers).length === 0}
+          className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
         >
           Reset All Progress
         </button>
       </div>
 
-      {!areAllQuestionsAnswered() && (
-        <div className="mt-3 text-red-600 text-center">
-          Please answer all questions before checking.
-        </div>
-      )}
-
-      {completedCases.size === cases.length && (
-        <div className="mt-6 p-4 bg-green-100 border border-green-400 rounded text-center">
-          <h3 className="font-bold text-green-800 text-lg">Congratulations!</h3>
-          <p>
-            You've completed all cases with a final score of {score.correct}/
-            {score.total}.
-          </p>
-        </div>
-      )}
+      <div className="mt-6 border-t pt-4">
+        <p className="font-semibold">
+          Overall Progress: {completedCases.size} of {cases.length} cases
+          completed
+        </p>
+        <p className="font-semibold">
+          Score: {score.correct} correct out of {score.total} questions
+          {score.total > 0 &&
+            ` (${Math.round((score.correct / score.total) * 100)}%)`}
+        </p>
+      </div>
     </div>
   );
 };
 
-export default RevenueRecognitionExercise;
+// Render directly instead of exporting
+ReactDOM.render(
+  <RevenueRecognitionExercise />,
+  document.getElementById("root")
+);
