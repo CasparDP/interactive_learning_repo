@@ -18,57 +18,76 @@
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="../assets/css/rsm-theme.css" />
 
-    <!-- Preload critical scripts -->
-    <link
-      rel="preload"
-      as="script"
-      href="https://unpkg.com/react@17/umd/react.production.min.js"
-    />
-    <link
-      rel="preload"
-      as="script"
-      href="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
-    />
+    <!-- Custom styles for animations and transitions -->
+    <style>
+      .animate-fadeIn {
+        animation: fadeIn 0.5s ease-in;
+      }
+
+      @keyframes fadeIn {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      /* Hover effects */
+      .hover-lift {
+        transition: transform 0.2s ease;
+      }
+
+      .hover-lift:hover {
+        transform: translateY(-2px);
+      }
+    </style>
+
+    <!-- React -->
+    <script
+      src="https://unpkg.com/react@17/umd/react.production.min.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
+      crossorigin
+    ></script>
   </head>
   <body class="bg-gray-100">
-    <nav
-      class="bg-blue-800 text-white p-4"
-      role="navigation"
-      aria-label="Main Navigation"
-    >
+    <nav class="bg-blue-800 text-white p-4 shadow-md">
       <div class="container mx-auto">
         <div class="flex justify-between items-center">
           <h1 class="text-xl font-bold">Financial Reporting & Analysis</h1>
           <a
             href="../"
-            class="hover:underline"
+            class="hover:underline flex items-center"
             aria-label="Return to Components page"
-            >← Back to Components</a
           >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Back to Components
+          </a>
         </div>
       </div>
     </nav>
 
     <main>
-      <div id="root" class="container mx-auto py-6"></div>
+      <div id="root" class="container mx-auto py-8"></div>
     </main>
 
     <!-- Scripts -->
-    <script
-      src="https://unpkg.com/react@17/umd/react.production.min.js"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://unpkg.com/babel-standalone@6/babel.min.js"
-      defer
-    ></script>
-    <script type="text/babel" src="app.js"></script>
+    <script src="app.js"></script>
 
     <!-- Error handling -->
     <script>
@@ -77,7 +96,16 @@
         function (e) {
           if (document.getElementById("root").childNodes.length === 0) {
             document.getElementById("root").innerHTML =
-              '<div class="p-4 bg-red-100 text-red-700 rounded">Sorry, there was a problem loading the exercise. Please try refreshing the page.</div>';
+              '<div class="p-6 bg-red-50 text-red-700 rounded-xl shadow border border-red-200 max-w-2xl mx-auto my-12">' +
+              '<div class="flex items-center mb-4">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />' +
+              "</svg>" +
+              '<h2 class="text-xl font-bold">Application Error</h2>' +
+              "</div>" +
+              "<p>Sorry, there was a problem loading the exercise. Please try refreshing the page.</p>" +
+              '<button onclick="window.location.reload()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200">Refresh Page</button>' +
+              "</div>";
           }
         },
         true
