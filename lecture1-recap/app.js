@@ -1,4 +1,4 @@
-// Use global React
+// Use React from the global scope instead of imports
 const { useState, useEffect } = React;
 
 // Navigation component
@@ -170,7 +170,7 @@ const Lecture1RecapExercise = () => {
         "lecture1RecapState",
         JSON.stringify({
           answers: studentAnswers,
-          completed: [...completedTopics],
+          completed: Array.from(completedTopics),
           scoreData: score,
           topicIndex: currentTopic,
         })
@@ -287,7 +287,31 @@ const Lecture1RecapExercise = () => {
     return topics;
   };
 
-  // Fetch the markdown content when component mounts
+  // Add this fallback data in case fetch fails
+  const fallbackTopics = [
+    {
+      title: "Introduction to Financial Reporting",
+      description:
+        "This topic covers the fundamental concepts of financial reporting.",
+      questions: [
+        {
+          id: "q-0-0",
+          text: "What is the primary purpose of financial reporting?",
+          options: [
+            "To calculate taxes",
+            "For internal management only",
+            "To provide useful financial information to stakeholders",
+            "To showcase success to competitors",
+          ],
+          correctAnswer: 2,
+          explanation:
+            "Financial reporting provides information to stakeholders for decision-making.",
+        },
+      ],
+    },
+  ];
+
+  // Modify the fetch content function
   const fetchContent = () => {
     setLoading(true);
     setError(null);
@@ -302,13 +326,24 @@ const Lecture1RecapExercise = () => {
         return response.text();
       })
       .then((markdownContent) => {
-        const parsedTopics = parseMarkdownContent(markdownContent);
-        setTopics(parsedTopics);
+        try {
+          const parsedTopics = parseMarkdownContent(markdownContent);
+          if (parsedTopics.length === 0) {
+            console.warn("No topics parsed from markdown");
+            setTopics(fallbackTopics);
+          } else {
+            setTopics(parsedTopics);
+          }
+        } catch (err) {
+          console.error("Error parsing markdown:", err);
+          setTopics(fallbackTopics);
+        }
         setLoading(false);
       })
       .catch((err) => {
         console.error("Error loading markdown content:", err);
         setError(err.message || "Failed to load quiz content");
+        setTopics(fallbackTopics);
         setLoading(false);
       });
   };
