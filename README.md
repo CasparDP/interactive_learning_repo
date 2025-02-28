@@ -23,23 +23,3 @@ These interactive components aim to bridge the gap between accounting theory and
 3. Work through exercises at your own pace
 4. Use the immediate feedback to refine your understanding
 5. Revisit components as needed when preparing for assessments
-
-# Folder structure
-
-interactive_learning_repo/
-├── index.html                 # Main landing page listing all components
-├── revenue-recognition/       # First interactive component
-│   ├── index.html
-│   ├── app.js
-│   └── styles.css
-├── earnings-management/       # Second interactive component
-│   ├── index.html
-│   ├── app.js
-│   └── styles.css
-└── assets/                    # Shared resources folder
-    ├── css/                   # Common CSS files
-    │   └── common.css
-    ├── js/                    # Common JavaScript files
-    │   └── utils.js
-    └── images/                # Images used across components
-        └── logo.png
