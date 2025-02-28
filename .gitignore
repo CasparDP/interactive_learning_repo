@@ -22,6 +22,6 @@ yarn-error.log*
 node_modules/
 
 # Not yet discussed
-earnings-management-simulator
-rd-simulator
-revenue-recognition
+earnings-management-simulator/
+rd-simulator/
+revenue-recognition/
