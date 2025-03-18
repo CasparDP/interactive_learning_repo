@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lecture 4 Recap | Financial Reporting & Analysis</title>
+
+    <!-- Stylesheets -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+    />
+
+    <!-- React -->
+    <script
+      src="https://unpkg.com/react@17/umd/react.production.min.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
+      crossorigin
+    ></script>
+  </head>
+  <body class="bg-gray-100">
+    <nav class="bg-blue-800 text-white p-4">
+      <div class="container mx-auto">
+        <div class="flex justify-between items-center">
+          <h1 class="text-xl font-bold">Financial Reporting & Analysis</h1>
+          <a href="../" class="hover:underline">← Back to Components</a>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <div id="root" class="container mx-auto py-6"></div>
+    </main>
+
+    <!-- App Script -->
+    <script src="app.js"></script>
+
+    <!-- Error handling -->
+    <script>
+      window.addEventListener(
+        "error",
+        function (e) {
+          if (document.getElementById("root").childNodes.length === 0) {
+            document.getElementById("root").innerHTML =
+              '<div class="p-4 bg-red-100 text-red-700 rounded">Sorry, there was a problem loading the exercise. Please try refreshing the page.</div>';
+          }
+        },
+        true
+      );
+    </script>
+  </body>
+</html>
