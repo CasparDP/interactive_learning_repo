@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial Statement Rearrangement Tools</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.4;
+        margin: 0;
+        padding: 15px;
+        background-color: #f9f9f9;
+        font-size: 14px;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #2c3e50;
+        margin-top: 10px;
+        margin-bottom: 8px;
+      }
+      h3 {
+        font-size: 16px;
+      }
+      h4 {
+        font-size: 14px;
+        margin-top: 8px;
+        margin-bottom: 5px;
+      }
+      .tabs {
+        display: flex;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #dee2e6;
+      }
+      .tab-button {
+        background-color: #f1f1f1;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+        padding: 10px 20px;
+        cursor: pointer;
+        margin-right: 5px;
+        font-weight: bold;
+        color: #333;
+      }
+      .tab-button:hover {
+        background-color: #e9ecef;
+      }
+      .tab-button.active {
+        background-color: #4a6fa5;
+        color: white;
+        border-color: #4a6fa5;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .container {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+      .column {
+        flex: 1;
+        min-width: 400px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 12px;
+        margin-bottom: 15px;
+        max-height: 800px;
+        overflow-y: auto;
+      }
+      .category {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 8px;
+        margin-bottom: 10px;
+        min-height: 30px;
+        max-height: 150px;
+        overflow-y: auto;
+      }
+      .item {
+        background-color: #e9ecef;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 6px 8px;
+        margin: 4px 0;
+        cursor: grab;
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+      }
+      .item.dragging {
+        opacity: 0.5;
+      }
+      .result {
+        font-weight: bold;
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        padding: 8px;
+        margin-top: 8px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .top-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+      }
+      button {
+        background-color: #4a6fa5;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      button:hover {
+        background-color: #385d8a;
+      }
+      .instruction {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 4px;
+        padding: 12px;
+        margin-bottom: 15px;
+        font-size: 13px;
+      }
+      .value-cell {
+        text-align: right;
+        min-width: 60px;
+      }
+      .total-row {
+        font-weight: bold;
+        border-top: 2px solid #dee2e6;
+        margin-top: 5px;
+        padding-top: 5px;
+      }
+      /* Negative values in red */
+      .negative {
+        color: #dc3545;
+      }
+      .item-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .toggle-sign {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .toggle-sign:hover {
+        background-color: #5a6268;
+      }
+      .calculate-btn {
+        background-color: #28a745;
+        margin-top: 10px;
+      }
+      .calculate-btn:hover {
+        background-color: #218838;
+      }
+      .tax-rate-container {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        padding: 8px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+      }
+      .tax-rate-container label {
+        margin-right: 10px;
+        font-weight: bold;
+      }
+      .tax-rate-container input {
+        width: 60px;
+        padding: 4px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+      }
+      .balance-info {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 4px;
+        padding: 8px;
+        margin-top: 12px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+      }
+      .error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+      }
+      /* Section dividers */
+      .section-divider {
+        border-top: 1px solid #e9ecef;
+        margin: 12px 0;
+      }
+      /* Added for tax-adjusted items */
+      .tax-adjusted {
+        font-style: italic;
+        color: #6c757d;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Financial Statement Rearrangement Tools</h1>
+
+    <div class="tabs">
+      <button class="tab-button active" data-tab="balance-sheet">
+        Balance Sheet
+      </button>
+      <button class="tab-button" data-tab="income-statement">
+        Income Statement
+      </button>
+    </div>
+
+    <!-- Balance Sheet Tab Content -->
+    <div id="balance-sheet" class="tab-content active">
+      <div class="instruction">
+        <h3>Balance Sheet Instructions:</h3>
+        <p>
+          Drag items from the original balance sheet on the left to the
+          appropriate categories in the investor balance sheet on the right.
+        </p>
+        <ul>
+          <li>Each category box is independently scrollable</li>
+          <li>
+            Click the "±" button to toggle between adding and subtracting an
+            item
+          </li>
+          <li>Click anywhere else on an item to remove it</li>
+          <li>
+            Try the "Load Example" button to see the correct categorization
+          </li>
+        </ul>
+      </div>
+
+      <div class="top-buttons">
+        <button id="reset-bs-btn">Reset All</button>
+        <button id="example-bs-btn">Load Example</button>
+      </div>
+
+      <div class="container">
+        <div class="column">
+          <h2>Original Accounting Balance Sheet</h2>
+
+          <h3>Assets</h3>
+          <div class="category" id="original-assets">
+            <div class="item" draggable="true" data-value="8.24">
+              <span>Cash & cash equivalents</span>
+              <div class="item-controls">
+                <span class="value-cell">8.24%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="8.92">
+              <span>Trade receivables</span>
+              <div class="item-controls">
+                <span class="value-cell">8.92%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="9.99">
+              <span>Inventories</span>
+              <div class="item-controls">
+                <span class="value-cell">9.99%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="1.79">
+              <span>Other current assets</span>
+              <div class="item-controls">
+                <span class="value-cell">1.79%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="45.34">
+              <span>Property, plant, & equipment</span>
+              <div class="item-controls">
+                <span class="value-cell">45.34%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="15.52">
+              <span>Intangible assets</span>
+              <div class="item-controls">
+                <span class="value-cell">15.52%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="0.93">
+              <span>Investments in associates</span>
+              <div class="item-controls">
+                <span class="value-cell">0.93%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="5.59">
+              <span>Other financial investments</span>
+              <div class="item-controls">
+                <span class="value-cell">5.59%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="3.68">
+              <span>Other non-current assets</span>
+              <div class="item-controls">
+                <span class="value-cell">3.68%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result total-row">
+            <div style="display: flex; justify-content: space-between">
+              <span>Total Assets:</span>
+              <span id="total-original-assets">100.00%</span>
+            </div>
+          </div>
+
+          <h3>Liabilities & Equity</h3>
+          <div class="category" id="original-liabilities">
+            <div class="item" draggable="true" data-value="18.23">
+              <span>Trade payables</span>
+              <div class="item-controls">
+                <span class="value-cell">18.23%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="5.05">
+              <span>Current portion of debt</span>
+              <div class="item-controls">
+                <span class="value-cell">5.05%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="14.14">
+              <span>Other current liabilities</span>
+              <div class="item-controls">
+                <span class="value-cell">14.14%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="29.19">
+              <span>Borrowings</span>
+              <div class="item-controls">
+                <span class="value-cell">29.19%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="2.25">
+              <span>Provisions</span>
+              <div class="item-controls">
+                <span class="value-cell">2.25%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="5.35">
+              <span>Other non-current liabilities</span>
+              <div class="item-controls">
+                <span class="value-cell">5.35%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="25.79">
+              <span>Group equity</span>
+              <div class="item-controls">
+                <span class="value-cell">25.79%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result total-row">
+            <div style="display: flex; justify-content: space-between">
+              <span>Total Liabilities & Equity:</span>
+              <span id="total-original-liabilities">100.00%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="column">
+          <h2>Investor Balance Sheet</h2>
+
+          <h3>Operating Assets & Liabilities</h3>
+          <h4>Current Operating Assets & Liabilities</h4>
+          <div class="category" id="current-operating">
+            <!-- Dragged items will appear here -->
+          </div>
+          <div class="result" id="net-working-capital-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Net Working Capital:</span>
+              <span id="net-working-capital">0.00%</span>
+            </div>
+          </div>
+
+          <h4>Non-Current Operating Assets & Liabilities</h4>
+          <div class="category" id="noncurrent-operating">
+            <!-- Dragged items will appear here -->
+          </div>
+          <div class="result" id="net-noncurrent-operating-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Net Non-Current Operating Assets:</span>
+              <span id="net-noncurrent-operating">0.00%</span>
+            </div>
+          </div>
+
+          <div class="result" id="net-operating-assets-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Net Operating Assets (NOA):</span>
+              <span id="net-operating-assets">0.00%</span>
+            </div>
+          </div>
+
+          <h3>Financial Assets & Liabilities</h3>
+          <h4>Financial Assets</h4>
+          <div class="category" id="financial-assets">
+            <!-- Dragged items will appear here -->
+          </div>
+          <div class="result" id="total-financial-assets-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Total Financial Assets:</span>
+              <span id="total-financial-assets">0.00%</span>
+            </div>
+          </div>
+
+          <h4>Financial Obligations (Debt)</h4>
+          <div class="category" id="financial-obligations">
+            <!-- Dragged items will appear here -->
+          </div>
+          <div class="result" id="total-financial-obligations-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Total Financial Obligations:</span>
+              <span id="total-financial-obligations">0.00%</span>
+            </div>
+          </div>
+
+          <div class="result" id="net-financial-obligations-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Net Financial Obligations (NFO):</span>
+              <span id="net-financial-obligations">0.00%</span>
+            </div>
+          </div>
+
+          <h4>Equity</h4>
+          <div class="category" id="equity">
+            <!-- Dragged items will appear here -->
+          </div>
+          <div class="result" id="total-equity-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Total Equity:</span>
+              <span id="total-equity">0.00%</span>
+            </div>
+          </div>
+
+          <div class="balance-info" id="balance-check-bs">
+            <span>Balance Check: NOA = NFO + Equity</span>
+            <span id="balance-status-bs">Not balanced</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Income Statement Tab Content -->
+    <div id="income-statement" class="tab-content">
+      <div class="instruction">
+        <h3>Income Statement Instructions:</h3>
+        <p>
+          Drag items from the original income statement on the left to the
+          appropriate categories in the investor income statement on the right.
+        </p>
+        <ul>
+          <li>Each category box is independently scrollable</li>
+          <li>
+            Click the "±" button to toggle between adding and subtracting an
+            item
+          </li>
+          <li>Click anywhere else on an item to remove it</li>
+          <li>
+            Try the "Load Example" button to see the correct categorization
+          </li>
+          <li>
+            Enter the statutory tax rate and click "Calculate Tax Effects" to
+            compute the tax-adjusted financial income/expense
+          </li>
+        </ul>
+      </div>
+
+      <div class="top-buttons">
+        <button id="reset-is-btn">Reset All</button>
+        <button id="example-is-btn">Load Example</button>
+      </div>
+
+      <div class="container">
+        <div class="column">
+          <h2>Original Accounting Income Statement</h2>
+
+          <div class="category" id="original-income">
+            <div class="item" draggable="true" data-value="165.24">
+              <span>Revenue</span>
+              <div class="item-controls">
+                <span class="value-cell">165.24%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="131.28">
+              <span>Cost of sales</span>
+              <div class="item-controls">
+                <span class="value-cell">131.28%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="21.76">
+              <span>Selling, general, & administrative expense</span>
+              <div class="item-controls">
+                <span class="value-cell">21.76%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="6.84">
+              <span>Other operating expense</span>
+              <div class="item-controls">
+                <span class="value-cell">6.84%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="0.64">
+              <span>Disposals, restructuring, & impairment charges</span>
+              <div class="item-controls">
+                <span class="value-cell">0.64%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="0.06">
+              <span>Other non-recurring items</span>
+              <div class="item-controls">
+                <span class="value-cell">0.06%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="0.06">
+              <span>Income from associates</span>
+              <div class="item-controls">
+                <span class="value-cell">0.06%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="0.05">
+              <span>Interest income</span>
+              <div class="item-controls">
+                <span class="value-cell">0.05%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="1.37">
+              <span>Interest expense</span>
+              <div class="item-controls">
+                <span class="value-cell">1.37%</span>
+              </div>
+            </div>
+            <div class="item" draggable="true" data-value="0.87">
+              <span>Tax expense</span>
+              <div class="item-controls">
+                <span class="value-cell">0.87%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result total-row">
+            <div style="display: flex; justify-content: space-between">
+              <span>Group Income:</span>
+              <span id="total-original-income">2.65%</span>
+            </div>
+          </div>
+
+          <div class="tax-rate-container">
+            <label for="tax-rate">Statutory Tax Rate (%):</label>
+            <input
+              type="number"
+              id="tax-rate"
+              value="24.1"
+              min="0"
+              max="100"
+              step="0.1"
+            />
+            <button id="calculate-tax-btn" class="calculate-btn">
+              Calculate Tax Effects
+            </button>
+          </div>
+        </div>
+
+        <div class="column">
+          <h2>Investor Income Statement</h2>
+
+          <h3>Financial Income & Expense</h3>
+          <h4>Financial Income</h4>
+          <div class="category" id="financial-income">
+            <!-- Dragged items will appear here -->
+          </div>
+          <div class="result" id="financial-income-after-tax-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Financial Income, after tax:</span>
+              <span id="financial-income-after-tax">0.00%</span>
+            </div>
+          </div>
+
+          <h4>Financial Expense</h4>
+          <div class="category" id="financial-expense">
+            <!-- Dragged items will appear here -->
+          </div>
+          <div class="result" id="financial-expense-after-tax-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Financial Expense, after tax:</span>
+              <span id="financial-expense-after-tax">0.00%</span>
+            </div>
+          </div>
+
+          <div class="result" id="net-financial-expense-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Net Financial Expense (NFE):</span>
+              <span id="net-financial-expense">0.00%</span>
+            </div>
+          </div>
+
+          <h3>Common Net Income</h3>
+          <div class="result" id="common-net-income-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Common Net Income (CNI):</span>
+              <span id="common-net-income">0.00%</span>
+            </div>
+          </div>
+
+          <h3>Operating Income</h3>
+          <div class="category" id="operating-income">
+            <!-- Dragged items will appear here -->
+          </div>
+          <div class="result" id="total-operating-income-result">
+            <div style="display: flex; justify-content: space-between">
+              <span>Operating Income, after tax (OI):</span>
+              <span id="total-operating-income">0.00%</span>
+            </div>
+          </div>
+
+          <div class="balance-info" id="balance-check-is">
+            <span>Income Statement Check: OI = CNI + NFE</span>
+            <span id="balance-status-is">Not balanced</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Tab switching functionality
+        const tabButtons = document.querySelectorAll(".tab-button");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        tabButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            const tabId = this.getAttribute("data-tab");
+
+            // Set active class on tab button
+            tabButtons.forEach((btn) => btn.classList.remove("active"));
+            this.classList.add("active");
+
+            // Set active class on tab content
+            tabContents.forEach((content) =>
+              content.classList.remove("active")
+            );
+            document.getElementById(tabId).classList.add("active");
+          });
+        });
+
+        // ==============================================
+        // Balance Sheet Functionality
+        // ==============================================
+        const bsItems = document.querySelectorAll(
+          "#original-assets .item, #original-liabilities .item"
+        );
+        const bsCategories = document.querySelectorAll(
+          "#balance-sheet .category"
+        );
+        let draggedItem = null;
+
+        // Add drag event listeners to balance sheet items
+        bsItems.forEach((item) => {
+          item.addEventListener("dragstart", function () {
+            draggedItem = this;
+            setTimeout(() => this.classList.add("dragging"), 0);
+          });
+
+          item.addEventListener("dragend", function () {
+            this.classList.remove("dragging");
+            draggedItem = null;
+            updateBalanceSheetTotals();
+          });
+        });
+
+        // Add drop event listeners to balance sheet categories
+        bsCategories.forEach((category) => {
+          category.addEventListener("dragover", function (e) {
+            e.preventDefault();
+            if (draggedItem && !this.contains(draggedItem)) {
+              this.style.background = "#e9f5ff";
+            }
+          });
+
+          category.addEventListener("dragleave", function () {
+            this.style.background = "";
+          });
+
+          category.addEventListener("drop", function (e) {
+            e.preventDefault();
+            this.style.background = "";
+
+            if (draggedItem && !this.contains(draggedItem)) {
+              // Only allow dragging from original categories or from another investor category
+              if (
+                draggedItem.parentElement.id !== "original-assets" &&
+                draggedItem.parentElement.id !== "original-liabilities"
+              ) {
+                return;
+              }
+
+              const clone = draggedItem.cloneNode(true);
+
+              // Add toggle sign button
+              const controlsDiv = clone.querySelector(".item-controls");
+              const toggleButton = document.createElement("button");
+              toggleButton.className = "toggle-sign";
+              toggleButton.textContent = "±";
+              toggleButton.addEventListener("click", function (e) {
+                e.stopPropagation();
+                const item = this.closest(".item");
+                const value = parseFloat(item.dataset.value);
+
+                if (item.dataset.isNegative === "true") {
+                  item.dataset.isNegative = "false";
+                  item
+                    .querySelector(".value-cell")
+                    .classList.remove("negative");
+                } else {
+                  item.dataset.isNegative = "true";
+                  item.querySelector(".value-cell").classList.add("negative");
+                }
+
+                updateBalanceSheetTotals();
+              });
+
+              controlsDiv.insertBefore(toggleButton, controlsDiv.firstChild);
+
+              // Add the item to the destination category
+              this.appendChild(clone);
+              clone.draggable = false; // Prevent further dragging
+
+              // Add remove functionality
+              clone.addEventListener("click", function (event) {
+                if (!event.target.classList.contains("toggle-sign")) {
+                  this.remove();
+                  updateBalanceSheetTotals();
+                }
+              });
+            }
+          });
+        });
+
+        // Reset button functionality for balance sheet
+        document
+          .getElementById("reset-bs-btn")
+          .addEventListener("click", function () {
+            // Clear all investor categories in balance sheet
+            document
+              .querySelectorAll("#balance-sheet .column:nth-child(2) .category")
+              .forEach((category) => {
+                category.innerHTML = "";
+              });
+            updateBalanceSheetTotals();
+          });
+
+        // Load example functionality for balance sheet
+        document
+          .getElementById("example-bs-btn")
+          .addEventListener("click", function () {
+            loadBalanceSheetExample();
+            updateBalanceSheetTotals();
+          });
+
+        // Function to update balance sheet totals and check balance
+        function updateBalanceSheetTotals() {
+          // Original balance sheet totals
+          updateOriginalBSTotals();
+
+          // Investor balance sheet calculations
+          const netWorkingCapital = calculateCategoryTotal("current-operating");
+          document.getElementById("net-working-capital").textContent =
+            formatPercent(netWorkingCapital);
+
+          const netNonCurrentOperating = calculateCategoryTotal(
+            "noncurrent-operating"
+          );
+          document.getElementById("net-noncurrent-operating").textContent =
+            formatPercent(netNonCurrentOperating);
+
+          const netOperatingAssets = netWorkingCapital + netNonCurrentOperating;
+          document.getElementById("net-operating-assets").textContent =
+            formatPercent(netOperatingAssets);
+
+          const totalFinancialAssets =
+            calculateCategoryTotal("financial-assets");
+          document.getElementById("total-financial-assets").textContent =
+            formatPercent(totalFinancialAssets);
+
+          const totalFinancialObligations = calculateCategoryTotal(
+            "financial-obligations"
+          );
+          document.getElementById("total-financial-obligations").textContent =
+            formatPercent(totalFinancialObligations);
+
+          const netFinancialObligations =
+            totalFinancialObligations - totalFinancialAssets;
+          document.getElementById("net-financial-obligations").textContent =
+            formatPercent(netFinancialObligations);
+
+          const totalEquity = calculateCategoryTotal("equity");
+          document.getElementById("total-equity").textContent =
+            formatPercent(totalEquity);
+
+          // Check if balance sheet is balanced
+          const balanceCheck = document.getElementById("balance-check-bs");
+          const balanceStatus = document.getElementById("balance-status-bs");
+
+          // Round to 2 decimal places for comparison
+          const roundedNOA = Math.round(netOperatingAssets * 100) / 100;
+          const roundedSum =
+            Math.round((netFinancialObligations + totalEquity) * 100) / 100;
+
+          if (Math.abs(roundedNOA - roundedSum) < 0.01) {
+            balanceCheck.classList.remove("error");
+            balanceStatus.textContent = "Balanced ✓";
+          } else {
+            balanceCheck.classList.add("error");
+            balanceStatus.textContent =
+              "Not balanced - Difference: " +
+              formatPercent(
+                Math.abs(
+                  netOperatingAssets - (netFinancialObligations + totalEquity)
+                )
+              );
+          }
+        }
+
+        // Calculate original balance sheet totals
+        function updateOriginalBSTotals() {
+          // This only counts items that haven't been moved to the investor balance sheet
+          const originalAssetsTotal = Array.from(
+            document.getElementById("original-assets").children
+          ).reduce((sum, item) => sum + parseFloat(item.dataset.value), 0);
+
+          const originalLiabilitiesTotal = Array.from(
+            document.getElementById("original-liabilities").children
+          ).reduce((sum, item) => sum + parseFloat(item.dataset.value), 0);
+
+          document.getElementById("total-original-assets").textContent =
+            formatPercent(originalAssetsTotal);
+          document.getElementById("total-original-liabilities").textContent =
+            formatPercent(originalLiabilitiesTotal);
+        }
+
+        // Function to load a balance sheet example configuration
+        function loadBalanceSheetExample() {
+          // First reset everything
+          document.getElementById("reset-bs-btn").click();
+
+          // Sample data for the example - 2021 data
+          const example = [
+            {
+              source: "Trade receivables",
+              target: "current-operating",
+              negative: false,
+            },
+            {
+              source: "Inventories",
+              target: "current-operating",
+              negative: false,
+            },
+            {
+              source: "Other current assets",
+              target: "current-operating",
+              negative: false,
+            },
+            {
+              source: "Trade payables",
+              target: "current-operating",
+              negative: true,
+            },
+            {
+              source: "Other current liabilities",
+              target: "current-operating",
+              negative: true,
+            },
+
+            {
+              source: "Property, plant, & equipment",
+              target: "noncurrent-operating",
+              negative: false,
+            },
+            {
+              source: "Intangible assets",
+              target: "noncurrent-operating",
+              negative: false,
+            },
+            {
+              source: "Investments in associates",
+              target: "noncurrent-operating",
+              negative: false,
+            },
+            {
+              source: "Other non-current assets",
+              target: "noncurrent-operating",
+              negative: false,
+            },
+            {
+              source: "Other non-current liabilities",
+              target: "noncurrent-operating",
+              negative: true,
+            },
+
+            {
+              source: "Cash & cash equivalents",
+              target: "financial-assets",
+              negative: false,
+            },
+            {
+              source: "Other financial investments",
+              target: "financial-assets",
+              negative: false,
+            },
+
+            {
+              source: "Current portion of debt",
+              target: "financial-obligations",
+              negative: false,
+            },
+            {
+              source: "Borrowings",
+              target: "financial-obligations",
+              negative: false,
+            },
+            {
+              source: "Provisions",
+              target: "financial-obligations",
+              negative: false,
+            },
+
+            { source: "Group equity", target: "equity", negative: false },
+          ];
+
+          // Place items in their target categories
+          example.forEach((item) => {
+            // Find the original item
+            let originalItem = null;
+
+            // Check in assets
+            document
+              .querySelectorAll("#original-assets .item")
+              .forEach((element) => {
+                if (element.querySelector("span").textContent === item.source) {
+                  originalItem = element;
+                }
+              });
+
+            // Check in liabilities if not found in assets
+            if (!originalItem) {
+              document
+                .querySelectorAll("#original-liabilities .item")
+                .forEach((element) => {
+                  if (
+                    element.querySelector("span").textContent === item.source
+                  ) {
+                    originalItem = element;
+                  }
+                });
+            }
+
+            if (originalItem) {
+              // Clone and modify the item
+              const clone = originalItem.cloneNode(true);
+
+              // Add toggle sign button
+              const controlsDiv = clone.querySelector(".item-controls");
+              const toggleButton = document.createElement("button");
+              toggleButton.className = "toggle-sign";
+              toggleButton.textContent = "±";
+              toggleButton.addEventListener("click", function (e) {
+                e.stopPropagation();
+                const item = this.closest(".item");
+
+                if (item.dataset.isNegative === "true") {
+                  item.dataset.isNegative = "false";
+                  item
+                    .querySelector(".value-cell")
+                    .classList.remove("negative");
+                } else {
+                  item.dataset.isNegative = "true";
+                  item.querySelector(".value-cell").classList.add("negative");
+                }
+
+                updateBalanceSheetTotals();
+              });
+
+              controlsDiv.insertBefore(toggleButton, controlsDiv.firstChild);
+
+              // Set negative attribute and apply styles
+              clone.dataset.isNegative = item.negative.toString();
+              if (item.negative) {
+                clone.querySelector(".value-cell").classList.add("negative");
+              }
+
+              // Add to target category
+              document.getElementById(item.target).appendChild(clone);
+              clone.draggable = false;
+
+              // Add remove functionality
+              clone.addEventListener("click", function (event) {
+                if (!event.target.classList.contains("toggle-sign")) {
+                  this.remove();
+                  updateBalanceSheetTotals();
+                }
+              });
+            }
+          });
+        }
+
+        // ==============================================
+        // Income Statement Functionality
+        // ==============================================
+        const isItems = document.querySelectorAll("#original-income .item");
+        const isCategories = document.querySelectorAll(
+          "#income-statement .category"
+        );
+
+        // Add drag event listeners to income statement items
+        isItems.forEach((item) => {
+          item.addEventListener("dragstart", function () {
+            draggedItem = this;
+            setTimeout(() => this.classList.add("dragging"), 0);
+          });
+
+          item.addEventListener("dragend", function () {
+            this.classList.remove("dragging");
+            draggedItem = null;
+            updateIncomeStatementTotals();
+          });
+        });
+
+        // Add drop event listeners to income statement categories
+        isCategories.forEach((category) => {
+          if (category.id === "original-income") return; // Skip original income category
+
+          category.addEventListener("dragover", function (e) {
+            e.preventDefault();
+            if (draggedItem && !this.contains(draggedItem)) {
+              this.style.background = "#e9f5ff";
+            }
+          });
+
+          category.addEventListener("dragleave", function () {
+            this.style.background = "";
+          });
+
+          category.addEventListener("drop", function (e) {
+            e.preventDefault();
+            this.style.background = "";
+
+            if (draggedItem && !this.contains(draggedItem)) {
+              // If it's already in another category, don't allow re-dragging
+              if (draggedItem.parentElement.id !== "original-income") {
+                return; // Don't allow re-dragging from investor categories
+              }
+
+              const clone = draggedItem.cloneNode(true);
+
+              // Add toggle sign button
+              const controlsDiv = clone.querySelector(".item-controls");
+              const toggleButton = document.createElement("button");
+              toggleButton.className = "toggle-sign";
+              toggleButton.textContent = "±";
+              toggleButton.addEventListener("click", function (e) {
+                e.stopPropagation();
+                const item = this.closest(".item");
+                const valueCell = item.querySelector(".value-cell");
+                const value = parseFloat(item.dataset.value);
+
+                if (value < 0) {
+                  // If value is negative and has negative class, it's shown as negative
+                  // If value is negative but has no negative class, it's shown as positive
+                  if (valueCell.classList.contains("negative")) {
+                    valueCell.classList.remove("negative");
+                    item.dataset.adjusted = "inverted";
+                  } else {
+                    valueCell.classList.add("negative");
+                    item.dataset.adjusted = "";
+                  }
+                } else {
+                  // If value is positive and has negative class, it's shown as negative
+                  // If value is positive and has no negative class, it's shown as positive
+                  if (valueCell.classList.contains("negative")) {
+                    valueCell.classList.remove("negative");
+                    item.dataset.adjusted = "";
+                  } else {
+                    valueCell.classList.add("negative");
+                    item.dataset.adjusted = "inverted";
+                  }
+                }
+                updateIncomeStatementTotals();
+              });
+
+              controlsDiv.insertBefore(toggleButton, controlsDiv.firstChild);
+
+              // Add the item to the destination category
+              this.appendChild(clone);
+              clone.draggable = false; // Prevent further dragging
+
+              // Add remove functionality
+              clone.addEventListener("click", function (event) {
+                if (!event.target.classList.contains("toggle-sign")) {
+                  this.remove();
+                  updateIncomeStatementTotals();
+                }
+              });
+
+              // Initialize tax-adjustments for financial items
+              if (
+                this.id === "financial-income" ||
+                this.id === "financial-expense"
+              ) {
+                // We'll calculate this when the user clicks the tax button
+                clone.dataset.taxAdjusted = "false";
+              }
+            }
+          });
+        });
+
+        // Reset button functionality for income statement
+        document
+          .getElementById("reset-is-btn")
+          .addEventListener("click", function () {
+            // Clear all investor categories in income statement
+            document
+              .querySelectorAll(
+                "#income-statement .column:nth-child(2) .category"
+              )
+              .forEach((category) => {
+                category.innerHTML = "";
+              });
+            updateIncomeStatementTotals();
+          });
+
+        // Load example functionality for income statement
+        document
+          .getElementById("example-is-btn")
+          .addEventListener("click", function () {
+            loadIncomeStatementExample();
+            updateIncomeStatementTotals();
+            // Calculate tax effects automatically for the example
+            document.getElementById("calculate-tax-btn").click();
+          });
+
+        // Calculate tax effects button
+        document
+          .getElementById("calculate-tax-btn")
+          .addEventListener("click", function () {
+            calculateTaxEffects();
+            updateIncomeStatementTotals();
+          });
+
+        // Function to calculate tax effects for financial income and expense
+        function calculateTaxEffects() {
+          const taxRate =
+            parseFloat(document.getElementById("tax-rate").value) / 100;
+          if (isNaN(taxRate)) return;
+
+          // Apply tax effects to financial income
+          applyTaxEffects("financial-income", taxRate);
+
+          // Apply tax effects to financial expense
+          applyTaxEffects("financial-expense", taxRate);
+        }
+
+        // Apply tax effects to financial items
+        function applyTaxEffects(categoryId, taxRate) {
+          const items = document.querySelectorAll(`#${categoryId} .item`);
+
+          items.forEach((item) => {
+            // If item is already tax-adjusted, skip it
+            if (item.dataset.taxAdjusted === "true") return;
+
+            // Get the original value and calculate tax-adjusted value
+            const originalValue = Math.abs(parseFloat(item.dataset.value));
+            const taxAdjustedValue = originalValue * (1 - taxRate);
+
+            // Update the display value
+            const valueCell = item.querySelector(".value-cell");
+            const isNegative = valueCell.classList.contains("negative");
+
+            // Format and update the value display
+            valueCell.textContent = taxAdjustedValue.toFixed(2) + "%";
+            if (isNegative) {
+              valueCell.textContent = "-" + valueCell.textContent;
+            }
+
+            // Add styling to indicate tax-adjustment
+            valueCell.classList.add("tax-adjusted");
+
+            // Store the adjusted value for calculations
+            item.dataset.adjustedValue = isNegative
+              ? -taxAdjustedValue
+              : taxAdjustedValue;
+            item.dataset.taxAdjusted = "true";
+          });
+        }
+
+        // Function to update income statement totals and check balance
+        function updateIncomeStatementTotals() {
+          // Original income statement total
+          calculateOriginalISTotal();
+
+          // Financial Income
+          const financialIncome = calculateCategoryTotal(
+            "financial-income",
+            true
+          );
+          document.getElementById("financial-income-after-tax").textContent =
+            formatPercent(financialIncome);
+
+          // Financial Expense
+          const financialExpense = calculateCategoryTotal(
+            "financial-expense",
+            true
+          );
+          document.getElementById("financial-expense-after-tax").textContent =
+            formatPercent(financialExpense);
+
+          // Net Financial Expense
+          const netFinancialExpense = financialExpense - financialIncome;
+          document.getElementById("net-financial-expense").textContent =
+            formatPercent(netFinancialExpense);
+
+          // Get common net income from original income total
+          const originalTotal = parseFloat(
+            document.getElementById("total-original-income").textContent
+          );
+          const commonNetIncome = originalTotal;
+          document.getElementById("common-net-income").textContent =
+            formatPercent(commonNetIncome);
+
+          // Calculate operating income as CNI + NFE
+          const operatingIncome = commonNetIncome + netFinancialExpense;
+          document.getElementById("total-operating-income").textContent =
+            formatPercent(operatingIncome);
+
+          // Check if income statement is balanced
+          const balanceCheck = document.getElementById("balance-check-is");
+          const balanceStatus = document.getElementById("balance-status-is");
+
+          // Round to 2 decimal places for comparison
+          const roundedOI = Math.round(operatingIncome * 100) / 100;
+          const roundedResult =
+            Math.round((commonNetIncome + netFinancialExpense) * 100) / 100;
+
+          if (Math.abs(roundedOI - roundedResult) < 0.01) {
+            balanceCheck.classList.remove("error");
+            balanceStatus.textContent = "Balanced ✓";
+          } else {
+            balanceCheck.classList.add("error");
+            balanceStatus.textContent =
+              "Not balanced - Difference: " +
+              formatPercent(Math.abs(roundedOI - roundedResult));
+          }
+        }
+
+        // Calculate original income statement total - modified version
+        function calculateOriginalISTotal() {
+          // Calculate the total of the original income statement items
+          const items = document.querySelectorAll("#original-income .item");
+          let total = 0;
+
+          items.forEach((item) => {
+            const value = parseFloat(item.dataset.value);
+            const itemName = item
+              .querySelector("span")
+              .textContent.toLowerCase();
+
+            // Add revenue and income items
+            if (
+              itemName.includes("revenue") ||
+              itemName.includes("income from") ||
+              (itemName.includes("non-recurring") &&
+                !itemName.includes("expense"))
+            ) {
+              total += value;
+            }
+            // Subtract expense items
+            else if (
+              itemName.includes("cost") ||
+              itemName.includes("expense") ||
+              itemName.includes("charges") ||
+              itemName.includes("tax")
+            ) {
+              total -= value;
+            }
+            // For interest, specifically check if it's income or expense
+            else if (itemName === "interest income") {
+              total += value;
+            } else if (itemName === "interest expense") {
+              total -= value;
+            }
+          });
+
+          document.getElementById("total-original-income").textContent =
+            formatPercent(total);
+        }
+        // Function to load an income statement example configuration
+        function loadIncomeStatementExample() {
+          // First reset everything
+          document.getElementById("reset-is-btn").click();
+
+          // Sample data for the example - 2021 data
+          const example = [
+            // Operating Income items - not needed in the new approach since we calculate OI
+
+            // Financial Income
+            {
+              source: "Interest income",
+              target: "financial-income",
+              invert: false,
+            },
+
+            // Financial Expense
+            {
+              source: "Interest expense",
+              target: "financial-expense",
+              invert: false,
+            },
+          ];
+
+          // Place items in their target categories
+          example.forEach((item) => {
+            // Find the original item
+            let originalItem = null;
+
+            document
+              .querySelectorAll("#original-income .item")
+              .forEach((element) => {
+                if (element.querySelector("span").textContent === item.source) {
+                  originalItem = element;
+                }
+              });
+
+            if (originalItem) {
+              // Clone and modify the item
+              const clone = originalItem.cloneNode(true);
+
+              // Add toggle sign button
+              const controlsDiv = clone.querySelector(".item-controls");
+              const toggleButton = document.createElement("button");
+              toggleButton.className = "toggle-sign";
+              toggleButton.textContent = "±";
+              toggleButton.addEventListener("click", function (e) {
+                e.stopPropagation();
+                const item = this.closest(".item");
+                const valueCell = item.querySelector(".value-cell");
+                const value = parseFloat(item.dataset.value);
+
+                if (value < 0) {
+                  if (valueCell.classList.contains("negative")) {
+                    valueCell.classList.remove("negative");
+                    item.dataset.adjusted = "inverted";
+                  } else {
+                    valueCell.classList.add("negative");
+                    item.dataset.adjusted = "";
+                  }
+                } else {
+                  if (valueCell.classList.contains("negative")) {
+                    valueCell.classList.remove("negative");
+                    item.dataset.adjusted = "";
+                  } else {
+                    valueCell.classList.add("negative");
+                    item.dataset.adjusted = "inverted";
+                  }
+                }
+                updateIncomeStatementTotals();
+              });
+
+              controlsDiv.insertBefore(toggleButton, controlsDiv.firstChild);
+
+              // Apply inversion if needed
+              if (item.invert) {
+                const valueCell = clone.querySelector(".value-cell");
+                const value = parseFloat(clone.dataset.value);
+
+                if (value < 0) {
+                  valueCell.classList.remove("negative");
+                  clone.dataset.adjusted = "inverted";
+                } else {
+                  valueCell.classList.add("negative");
+                  clone.dataset.adjusted = "inverted";
+                }
+              }
+
+              // Add to target category
+              document.getElementById(item.target).appendChild(clone);
+              clone.draggable = false;
+
+              // Add remove functionality
+              clone.addEventListener("click", function (event) {
+                if (!event.target.classList.contains("toggle-sign")) {
+                  this.remove();
+                  updateIncomeStatementTotals();
+                }
+              });
+
+              // Mark financial items for tax adjustment
+              if (
+                item.target === "financial-income" ||
+                item.target === "financial-expense"
+              ) {
+                clone.dataset.taxAdjusted = "false";
+              }
+            }
+          });
+        }
+
+        // ============================================
+        // Shared Functions
+        // ============================================
+
+        // Calculate category total considering "negative" items and tax adjustments
+        function calculateCategoryTotal(categoryId, useTaxAdjusted = false) {
+          const items = document.querySelectorAll(`#${categoryId} .item`);
+          let total = 0;
+
+          items.forEach((item) => {
+            let value;
+
+            if (useTaxAdjusted && item.dataset.taxAdjusted === "true") {
+              // Use tax-adjusted value if available
+              value = parseFloat(item.dataset.adjustedValue);
+            } else {
+              // Otherwise use the original value
+              value = parseFloat(item.dataset.value);
+
+              // Handle items that have isNegative property (balance sheet items)
+              if (item.dataset.isNegative === "true") {
+                value = -Math.abs(value);
+              }
+
+              // Handle items with adjusted property (income statement items)
+              if (item.dataset.adjusted === "inverted") {
+                value = -value;
+              } else {
+                const valueCell = item.querySelector(".value-cell");
+                const isNegative = valueCell.classList.contains("negative");
+
+                // If display doesn't match actual value sign
+                if ((value < 0 && !isNegative) || (value > 0 && isNegative)) {
+                  value = -value;
+                }
+              }
+            }
+
+            total += value;
+          });
+
+          return total;
+        }
+
+        // Format percent numbers
+        function formatPercent(value) {
+          return value.toFixed(2) + "%";
+        }
+
+        // Initialize both tools
+        updateBalanceSheetTotals();
+        updateIncomeStatementTotals();
+      });
+    </script>
+  </body>
+</html>
